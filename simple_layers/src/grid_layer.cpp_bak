@@ -6,6 +6,8 @@ PLUGINLIB_EXPORT_CLASS(simple_layer_namespace::GridLayer, costmap_2d::Layer)
 using costmap_2d::LETHAL_OBSTACLE;
 using costmap_2d::NO_INFORMATION;
 
+using costmap_2d::INSCRIBED_INFLATED_OBSTACLE;
+
 namespace simple_layer_namespace
 {
 
@@ -44,29 +46,27 @@ void GridLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, d
   if (!enabled_)
     return;
 
-  //double mark_x = robot_x + cos(robot_yaw), mark_y = robot_y + sin(robot_yaw);
-  
-  double mark_x = robot_x, mark_y = robot_y;
-  
-
+  double mark_x = robot_x + cos(robot_yaw), mark_y = robot_y + sin(robot_yaw);
   unsigned int mx;
   unsigned int my;
-  /*if(worldToMap(mark_x, mark_y, mx, my)){
-    //setCost(mx, my, LETHAL_OBSTACLE);
-    setCost(mx, my, 200);
-  }*/
+  if(worldToMap(mark_x, mark_y, mx, my)){
+    setCost(mx, my, LETHAL_OBSTACLE);
+  }
 
-//j,y is left right of vehicle
-  for(int j = -1;j<2;j++)
+  for(int j = -50;j<50;j++)
   {
-        for(int i= 1;i<11;i++)
-        {
-                if(worldToMap(robot_x+i, robot_y+j, mx, my)){
-                setCost(mx, my, (unsigned char)(250));
-        }
+	for(int i= -5;i<5;i++)
+	{
+	 	ROS_INFO("robot_x: %f, robot_y: %f",robot_x, robot_y);
 
-        
-        }
+	 	ROS_INFO("robot_x+i: %f, robot_y+j: %f",robot_x+i, robot_y+j);
+
+        	if(worldToMap(robot_x+i, robot_y+j, mx, my)){
+    		setCost(mx, my, (unsigned char)(250));
+  	}
+
+
+	}
   }
 
   
@@ -82,8 +82,41 @@ void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
   if (!enabled_)
     return;
 
+  for (int j = min_j; j < max_j; j++)
+  {
+    for (int i = min_i; i < max_i; i++)
+    {
+ 	//ROS_INFO("min_i: %u",i);
+	//ROS_INFO("min_j: %u",j);
+             
+      int index = getIndex(i, j);
+      if (costmap_[index] == NO_INFORMATION)
+      {
+	/*ROS_INFO("%s","In NO_INFORMATION");
+	ROS_INFO("i: %u",i);
+	ROS_INFO("j: %u",j);*/
+        continue;
+      }
+      master_grid.setCost(i, j, costmap_[index]); 
+      /*ROS_INFO("%s","Information exists=================================================================================================");
+      ROS_INFO("i: %u",i);
+      ROS_INFO("j: %u",j);
+      ROS_INFO("%u",costmap_[index]);*/
 
-  updateWithMax(master_grid, min_i, min_j, max_i, max_j);
+      /*THIS WAS TO TEST CREATING STUFF IN A COSTMAP AROUND THE VEHICLE
+      int middle = ((max_j - min_j)/2)+min_j;
+      ROS_INFO("middle: %u",middle);
+      ROS_INFO("j: %u",j);
+
+
+      if(j==middle)
+      {ROS_INFO("IN MIDDLE");
+      	master_grid.setCost(i, j, (unsigned char)(200)); 
+      }
+      */
+    }
+
+  }
 }
 
 } // end namespace

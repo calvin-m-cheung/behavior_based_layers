@@ -57,7 +57,7 @@ void GridLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, d
   }*/
 
 //j,y is left right of vehicle
-  for(int j = -1;j<2;j++)
+  for(int j = -3;j<-1;j++)
   {
         for(int i= 1;i<11;i++)
         {
@@ -82,8 +82,16 @@ void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
   if (!enabled_)
     return;
 
-
-  updateWithMax(master_grid, min_i, min_j, max_i, max_j);
+  for (int j = min_j; j < max_j; j++)
+  {
+    for (int i = min_i; i < max_i; i++)
+    {
+      int index = getIndex(i, j);
+      if (costmap_[index] == NO_INFORMATION)
+        continue;
+      master_grid.setCost(i, j, costmap_[index]); 
+    }
+  }
 }
 
 } // end namespace

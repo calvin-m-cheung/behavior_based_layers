@@ -3,13 +3,15 @@
 #include <ros/ros.h>
 #include <costmap_2d/layer.h>
 #include <costmap_2d/layered_costmap.h>
+#include <costmap_2d/costmap_layer.h>
+
 #include <costmap_2d/GenericPluginConfig.h>
 #include <dynamic_reconfigure/server.h>
 
 namespace simple_layer_namespace
 {
 
-class GridLayer : public costmap_2d::Layer, public costmap_2d::Costmap2D
+class GridLayer : public costmap_2d::CostmapLayer
 {
 public:
   GridLayer();

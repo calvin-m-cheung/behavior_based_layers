@@ -58,7 +58,7 @@ void SecondLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
 	for(int i= -10;i<10;i++)
 	{
 	 	if(worldToMap(robot_x+i, robot_y+j, mx, my)){
-    		setCost(mx, my, (unsigned char)(100));
+    		setCost(mx, my, (unsigned char)(50));
   	}
 
 
@@ -78,9 +78,41 @@ void SecondLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int
   if (!enabled_)
     return;
 
-  updateWithMax(master_grid, min_i, min_j, max_i, max_j);
+  for (int j = min_j; j < max_j; j++)
+  {
+    for (int i = min_i; i < max_i; i++)
+    {
+ 	//ROS_INFO("min_i: %u",i);
+	//ROS_INFO("min_j: %u",j);
+             
+      int index = getIndex(i, j);
+      if (costmap_[index] == NO_INFORMATION)
+      {
+	/*ROS_INFO("%s","In NO_INFORMATION");
+	ROS_INFO("i: %u",i);
+	ROS_INFO("j: %u",j);*/
+        continue;
+      }
+      master_grid.setCost(i, j, costmap_[index]); 
+      /*ROS_INFO("%s","Information exists=================================================================================================");
+      ROS_INFO("i: %u",i);
+      ROS_INFO("j: %u",j);
+      ROS_INFO("%u",costmap_[index]);*/
+
+      /*THIS WAS TO TEST CREATING STUFF IN A COSTMAP AROUND THE VEHICLE
+      int middle = ((max_j - min_j)/2)+min_j;
+      ROS_INFO("middle: %u",middle);
+      ROS_INFO("j: %u",j);
 
 
+      if(j==middle)
+      {ROS_INFO("IN MIDDLE");
+      	master_grid.setCost(i, j, (unsigned char)(200)); 
+      }
+      */
+    }
+
+  }
 }
 
 } // end namespace
