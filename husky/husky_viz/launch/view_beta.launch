@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find husky_viz)/rviz/robot.rviz" output="screen" ns="husky_beta" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find husky_viz)/rviz/alpha.rviz" output="screen" ns="husky_alpha"/>
 </launch>

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find husky_viz)/rviz/alpha.rviz" output="screen" ns="husky_alpha"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find husky_viz)/rviz/beta.rviz" output="screen" ns="husky_beta"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find husky_viz)/rviz/gamma.rviz" output="screen" ns="husky_gamma"/>
+</launch>
