@@ -247,12 +247,24 @@ namespace apf_local_planner {
 
     obstacle_costs_.setFootprint(footprint_spec);
 
+    /*CALVIN
+     *  path_costs_ and goal_costs_ are base_local_planner::MapGridCostFunction, which is seems tied to the use of DWA,
+     *  and isn't something that is immediately general. May need to work what it does, since things like ScoreTrajectory
+     *  might not matter to me. In this specific instance, it's just using global_plan as the target pose, will examine
+     *  how's this info is used moving forward.
+     */
+
     // costs for going away from path
     path_costs_.setTargetPoses(global_plan_);
+
 
     // costs for not going towards the local goal as much as possible
     goal_costs_.setTargetPoses(global_plan_);
 
+    /*CALVIN
+     * back() goes to the last element in the vector, which is the overall end goal. This area looks at your global position and finds
+     * distance to final goal position.
+     */
     // alignment costs
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();
 
@@ -268,6 +280,11 @@ namespace apf_local_planner {
     // robot needs to make a 180 degree turn at the end
     std::vector<geometry_msgs::PoseStamped> front_global_plan = global_plan_;
     double angle_to_goal = atan2(goal_pose.pose.position.y - pos[1], goal_pose.pose.position.x - pos[0]);
+    /*CALVIN
+     * forward_point_distance (from APFPlannerConfig) seems to be set by the dynamic_reconfigure package stuff. It's the distance from the center point
+     * of the robot to place an additional scoring point in meters. Overall, seems to be accounting for the idea that we want to center of the robot at
+     * the right spot in the end.
+     */
     front_global_plan.back().pose.position.x = front_global_plan.back().pose.position.x +
       forward_point_distance_ * cos(angle_to_goal);
     front_global_plan.back().pose.position.y = front_global_plan.back().pose.position.y + forward_point_distance_ *
@@ -276,6 +293,9 @@ namespace apf_local_planner {
     goal_front_costs_.setTargetPoses(front_global_plan);
     
     // keeping the nose on the path
+    /*CALVIN
+     * setScale is from trajectory_cost_function (which doesn't seem to have a .cpp file). Sets scale_, but it doesn't seem to be used.
+     */
     if (sq_dist > forward_point_distance_ * forward_point_distance_ * cheat_factor_) {
       alignment_costs_.setScale(pdist_scale_);
       // costs for robot being aligned with path (nose on path, not ju
@@ -314,6 +334,24 @@ namespace apf_local_planner {
     result_traj_.cost_ = -7;
     // find best trajectory by sampling and scoring the samples
     std::vector<base_local_planner::Trajectory> all_explored;
+
+    /*CALVIN
+     * 	findBestTrjaectory is where the DWA stuff happens. From here on down it needs to be changed or removed to use APF.
+     * 	Note that the result_traj_ is passed by reference
+     *
+     * 	What happens here is that it does the DWA thing where it finds the best trajectory and returns the the list of
+     * 	points in that trajectory. So result_traj_ is type trajectory. It will have the following info:
+     * 	xv - x velocity used to seed the trajectory
+     * 	yv - the y velocity used to see the trajectory
+     * 	thetav the theta velocity used to see the trajectory
+     * 	num_pts - expected number of points for a trajectory
+     * 	cost - cost of trajectory
+     * 	time_delta_ - time gap between points
+     * 	Then vectors for x, y, and theta points.
+     * 	all_explored has info about all the trajectories explored, with result_traj being the best one.
+     *
+     * 	For potential field, don't think I need more than one value in a trajectory. It should be recalculated every cycle given the costmap.
+     */
     scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
 
     if(publish_traj_pc_)
@@ -364,9 +402,15 @@ namespace apf_local_planner {
       map_viz_.publishCostCloud(planner_util_->getCostmap());
     }
 
+    /*CALVIN
+     * Seems to just set flags and not mess with the actual trajectory.
+     */
     // debrief stateful scoring functions
     oscillation_costs_.updateOscillationFlags(pos, &result_traj_, planner_util_->getCurrentLimits().min_vel_trans);
 
+    /*CALVIN
+     * Not using trajectories, so will have to alter this. Note that what's being sent to drive is the x velocity, y velocity, and pose angle.
+     */
     //if we don't have a legal trajectory, we'll just command zero
     if (result_traj_.cost_ < 0) {
       drive_velocities.pose.position.x = 0;

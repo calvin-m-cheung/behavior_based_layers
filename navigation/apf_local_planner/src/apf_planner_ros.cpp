@@ -54,43 +54,51 @@ PLUGINLIB_EXPORT_CLASS(apf_local_planner::APFPlannerROS, nav_core::BaseLocalPlan
 
 namespace apf_local_planner {
 
-  void APFPlannerROS::reconfigureCB(APFPlannerConfig &config, uint32_t level) {
-      if (setup_ && config.restore_defaults) {
-        config = default_config_;
-        config.restore_defaults = false;
-      }
-      if ( ! setup_) {
-        default_config_ = config;
-        setup_ = true;
-      }
+	void APFPlannerROS::reconfigureCB(APFPlannerConfig &config, uint32_t level){
+	/*CALVIN
+	*look at reconfigure after the rest of the conversion is complete.
+	*/
+		if (setup_ && config.restore_defaults) {
+			config = default_config_;
+			config.restore_defaults = false;
+		}
+		if ( ! setup_) {
+			default_config_ = config;
+			setup_ = true;
+		}
 
-      // update generic local planner params
-      base_local_planner::LocalPlannerLimits limits;
-      limits.max_vel_trans = config.max_vel_trans;
-      limits.min_vel_trans = config.min_vel_trans;
-      limits.max_vel_x = config.max_vel_x;
-      limits.min_vel_x = config.min_vel_x;
-      limits.max_vel_y = config.max_vel_y;
-      limits.min_vel_y = config.min_vel_y;
-      limits.max_vel_theta = config.max_vel_theta;
-      limits.min_vel_theta = config.min_vel_theta;
-      limits.acc_lim_x = config.acc_lim_x;
-      limits.acc_lim_y = config.acc_lim_y;
-      limits.acc_lim_theta = config.acc_lim_theta;
-      limits.acc_lim_trans = config.acc_lim_trans;
-      limits.xy_goal_tolerance = config.xy_goal_tolerance;
-      limits.yaw_goal_tolerance = config.yaw_goal_tolerance;
-      limits.prune_plan = config.prune_plan;
-      limits.trans_stopped_vel = config.trans_stopped_vel;
-      limits.theta_stopped_vel = config.theta_stopped_vel;
-      planner_util_.reconfigureCB(limits, config.restore_defaults);
+		// update generic local planner params
+		base_local_planner::LocalPlannerLimits limits;
+		limits.max_vel_trans = config.max_vel_trans;
+		limits.min_vel_trans = config.min_vel_trans;
+		limits.max_vel_x = config.max_vel_x;
+		limits.min_vel_x = config.min_vel_x;
+		limits.max_vel_y = config.max_vel_y;
+		limits.min_vel_y = config.min_vel_y;
+		limits.max_vel_theta = config.max_vel_theta;
+		limits.min_vel_theta = config.min_vel_theta;
+		limits.acc_lim_x = config.acc_lim_x;
+		limits.acc_lim_y = config.acc_lim_y;
+		limits.acc_lim_theta = config.acc_lim_theta;
+		limits.acc_lim_trans = config.acc_lim_trans;
+		limits.xy_goal_tolerance = config.xy_goal_tolerance;
+		limits.yaw_goal_tolerance = config.yaw_goal_tolerance;
+		limits.prune_plan = config.prune_plan;
+		limits.trans_stopped_vel = config.trans_stopped_vel;
+		limits.theta_stopped_vel = config.theta_stopped_vel;
+		planner_util_.reconfigureCB(limits, config.restore_defaults);
 
-      // update apf specific configuration
-      dp_->reconfigure(config);
-  }
+		// update apf specific configuration
+		dp_->reconfigure(config);
+	}
 
   APFPlannerROS::APFPlannerROS() : initialized_(false),
       odom_helper_("odom"), setup_(false) {
+	  /*CALVIN
+	   * initiaized_ - ???
+	   * odom_helper - helps read the odometry topic
+	   * setup_ - ???
+	   */
 
   }
 
@@ -101,6 +109,13 @@ namespace apf_local_planner {
     if (! isInitialized()) {
 
       ros::NodeHandle private_nh("~/" + name);
+
+      /*CALVIN
+       * Both _plan_pub_ are for visualization, publishers of global and local plan
+       * tf - Used for transforming point clouds
+       * costmap_ros - used to get current_pose_ right here
+       * current_pose_ - pose of robot in global frame.
+      */
       g_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
       l_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
       tf_ = tf;
@@ -110,6 +125,9 @@ namespace apf_local_planner {
       // make sure to update the costmap we'll use for this cycle
       costmap_2d::Costmap2D* costmap = costmap_ros_->getCostmap();
 
+      /*CALVIN
+       * loads all the variables needed by planner_util into the class
+       */
       planner_util_.initialize(tf, costmap, costmap_ros_->getGlobalFrameID());
 
       //create the actual planner that we'll use.. it'll configure itself from the parameter server
@@ -148,6 +166,11 @@ namespace apf_local_planner {
     latchedStopRotateController_.resetLatching();
 
     ROS_INFO("Got new plan");
+
+    /*CALVIN
+     * dp_ is the wrapped C++ class. This is where the class is called to set the actual plan
+     * orig_global_plan is a vector of pose/reference frame/time stamp, that I'm assuming is a series of poses that make up the overall plan.
+     */
     return dp_->setPlan(orig_global_plan);
   }
 
@@ -186,7 +209,7 @@ namespace apf_local_planner {
 
 
   bool APFPlannerROS::apfComputeVelocityCommands(geometry_msgs::PoseStamped &global_pose, geometry_msgs::Twist& cmd_vel) {
-    // dynamic window sampling approach to get useful velocity commands
+    // artificial potential field approach
     if(! isInitialized()){
       ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
       return false;
@@ -203,8 +226,18 @@ namespace apf_local_planner {
 
     //compute what trajectory to drive along
     geometry_msgs::PoseStamped drive_cmds;
+    /*CALVIN
+     * returns local frame of the costmap
+     */
     drive_cmds.header.frame_id = costmap_ros_->getBaseFrameID();
     
+    /*CALVIN
+     * findBestPath - "Given the current position and velocity of the robot, find the best trajectory to exectue".
+     * This is where things start changing for APF.
+     *
+     * Trajectory is vector of x, y, and theta, along with a seed value. I can potentially just set the seed values to what they need to be in APF.
+     * Examine how the rest of this uses the vector of points.
+     */
     // call with updated footprint
     base_local_planner::Trajectory path = dp_->findBestPath(global_pose, robot_vel, drive_cmds);
     //ROS_ERROR("Best: %.2f, %.2f, %.2f, %.2f", path.xv_, path.yv_, path.thetav_, path.cost_);
@@ -222,6 +255,9 @@ namespace apf_local_planner {
     cmd_vel.linear.y = drive_cmds.pose.position.y;
     cmd_vel.angular.z = tf2::getYaw(drive_cmds.pose.orientation);
 
+    /*CALVIN
+     * path.cost will probably change to something like a flag to indicate error
+     */
     //if we cannot move... tell someone
     std::vector<geometry_msgs::PoseStamped> local_plan;
     if(path.cost_ < 0) {
@@ -235,6 +271,9 @@ namespace apf_local_planner {
     ROS_DEBUG_NAMED("apf_local_planner", "A valid velocity command of (%.2f, %.2f, %.2f) was found for this cycle.", 
                     cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.angular.z);
 
+    /*CALVIN
+     * Concept of local plan might not be here anymore since APF should just be getting velocity vector from costmaps and not planning beyond that
+     */
     // Fill out the local plan
     for(unsigned int i = 0; i < path.getPointsSize(); ++i) {
       double p_x, p_y, p_th;
@@ -267,6 +306,10 @@ namespace apf_local_planner {
       ROS_ERROR("Could not get robot pose");
       return false;
     }
+
+    /*CALVIN
+     * getLocalPLan takes the global plan and transforms/prunes it for local frame.
+     */
     std::vector<geometry_msgs::PoseStamped> transformed_plan;
     if ( ! planner_util_.getLocalPlan(current_pose_, transformed_plan)) {
       ROS_ERROR("Could not get local plan");
@@ -283,6 +326,14 @@ namespace apf_local_planner {
     // update plan in apf_planner even if we just stop and rotate, to allow checkTrajectory
     dp_->updatePlanAndLocalCosts(current_pose_, transformed_plan, costmap_ros_->getRobotFootprint());
 
+    /*CALVIN
+     * isPositionReached checks if you're beyond the goal position
+     * publishGlobalPlan calls base_local_planner::publishPlan, which seems to be from navigation/base_local_planner/src/goal_functions,
+     * and publishes a plan to ROS. Same with publishLocalPLan.
+     * local_planner_limits seems to be used to set generic set of parameters to use with base local planners
+     *
+     * So if you're beyond the goal, publish an empty plan so there's no where else to go, then stop and rotate
+     */
     if (latchedStopRotateController_.isPositionReached(&planner_util_, current_pose_)) {
       //publish an empty plan because we've reached our goal position
       std::vector<geometry_msgs::PoseStamped> local_plan;
@@ -299,6 +350,13 @@ namespace apf_local_planner {
           current_pose_,
           boost::bind(&APFPlanner::checkTrajectory, dp_, _1, _2, _3));
     } else {
+
+    	/*CALVIN
+    	 * note that apfComputeVelocity takes cmd_vel as a reference variable, which was passed through computeVelocityCommands as a reference
+    	 * variable as well. That's why the actual values get sent up to the robot.
+    	 *
+    	 * If apfComputeVelocityCommands works out, then update the global plan as well.
+    	 */
       bool isOk = apfComputeVelocityCommands(current_pose_, cmd_vel);
       if (isOk) {
         publishGlobalPlan(transformed_plan);
