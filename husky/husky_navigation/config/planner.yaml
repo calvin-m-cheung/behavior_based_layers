@@ -130,6 +130,6 @@ VFF:
   
   # PID controller tuning:
   vff_pid_kp: 0.5
-  vff_pid_ki: 0
+  vff_pid_ki: 0 
   vff_pid_kd: 0
   
