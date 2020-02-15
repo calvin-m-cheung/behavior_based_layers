@@ -101,6 +101,10 @@ VFF:
   # Force constant:
   vff_fconst: 3
   
+  # Replusive constant:
+  vff_frepconst: 3
+  
+
   # Which values in costmap should be considered? (Def = 254 = only lethal cells)
   vff_costmap_threshold: 254
   
