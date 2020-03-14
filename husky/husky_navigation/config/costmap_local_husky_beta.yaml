@@ -1,4 +1,4 @@
-global_frame: husky_beta_tf/odom
+global_frame: odom
 rolling_window: true
 
 plugins:

@@ -5,5 +5,5 @@ plugins:
   - {name: obstacles_laser,           type: "costmap_2d::ObstacleLayer"}
   - {name: inflation,                 type: "costmap_2d::InflationLayer"}
 #  - {name: simple_layer,              type: "simple_layer_namespace::SimpleLayer"}
-#  - {name: second_layer,              type: "simple_layer_namespace::SecondLayer"}
-#  - {name: grid_layer,                type: "simple_layer_namespace::GridLayer"}
+  - {name: second_layer,              type: "simple_layer_namespace::SecondLayer"}
+  - {name: grid_layer,                type: "simple_layer_namespace::GridLayer"}

@@ -5,7 +5,7 @@ find_package(catkin REQUIRED
         COMPONENTS
             std_msgs
             geometry_msgs
-            tf2_ros
+            tf
             costmap_2d
         )
 
@@ -15,7 +15,7 @@ catkin_package(
     CATKIN_DEPENDS
             std_msgs
             geometry_msgs
-            tf2_ros
+            tf
             costmap_2d
 )
 

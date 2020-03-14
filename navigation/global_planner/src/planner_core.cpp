@@ -37,6 +37,7 @@
  *********************************************************************/
 #include <global_planner/planner_core.h>
 #include <pluginlib/class_list_macros.h>
+#include <tf/transform_listener.h>
 #include <costmap_2d/cost_values.h>
 #include <costmap_2d/costmap_2d.h>
 
@@ -143,6 +144,10 @@ void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap,
         private_nh.param("default_tolerance", default_tolerance_, 0.0);
         private_nh.param("publish_scale", publish_scale_, 100);
 
+        //get the tf prefix
+        ros::NodeHandle prefix_nh;
+        tf_prefix_ = tf::getPrefixParam(prefix_nh);
+
         make_plan_srv_ = private_nh.advertiseService("make_plan", &GlobalPlanner::makePlanService, this);
 
         dsrv_ = new dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig>(ros::NodeHandle("~/" + name));
@@ -166,7 +171,7 @@ void GlobalPlanner::reconfigureCB(global_planner::GlobalPlannerConfig& config, u
     orientation_filter_->setWindowSize(config.orientation_window_size);
 }
 
-void GlobalPlanner::clearRobotCell(const geometry_msgs::PoseStamped& global_pose, unsigned int mx, unsigned int my) {
+void GlobalPlanner::clearRobotCell(const tf::Stamped<tf::Pose>& global_pose, unsigned int mx, unsigned int my) {
     if (!initialized_) {
         ROS_ERROR(
                 "This planner has not been initialized yet, but it is being used, please call initialize() before use");
@@ -228,15 +233,15 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     std::string global_frame = frame_id_;
 
     //until tf can handle transforming things that are way in the past... we'll require the goal to be in our global frame
-    if (goal.header.frame_id != global_frame) {
+    if (tf::resolve(tf_prefix_, goal.header.frame_id) != tf::resolve(tf_prefix_, global_frame)) {
         ROS_ERROR(
-                "The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.", global_frame.c_str(), goal.header.frame_id.c_str());
+                "The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.", tf::resolve(tf_prefix_, global_frame).c_str(), tf::resolve(tf_prefix_, goal.header.frame_id).c_str());
         return false;
     }
 
-    if (start.header.frame_id != global_frame) {
+    if (tf::resolve(tf_prefix_, start.header.frame_id) != tf::resolve(tf_prefix_, global_frame)) {
         ROS_ERROR(
-                "The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.", global_frame.c_str(), start.header.frame_id.c_str());
+                "The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.", tf::resolve(tf_prefix_, global_frame).c_str(), tf::resolve(tf_prefix_, start.header.frame_id).c_str());
         return false;
     }
 
@@ -274,7 +279,9 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     }
 
     //clear the starting cell within the costmap because we know it can't be an obstacle
-    clearRobotCell(start, start_x_i, start_y_i);
+    tf::Stamped<tf::Pose> start_pose;
+    tf::poseStampedMsgToTF(start, start_pose);
+    clearRobotCell(start_pose, start_x_i, start_y_i);
 
     int nx = costmap_->getSizeInCellsX(), ny = costmap_->getSizeInCellsY();
 

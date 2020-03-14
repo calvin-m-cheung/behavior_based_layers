@@ -92,48 +92,48 @@ APFPlannerROS:
   # # Oscillation Prevention Parameters
   # oscillation_reset_dist: 0.25 #How far the robot must travel in meters before oscillation flags are reset (double, default: 0.05)
 
-VFF:
-  # CONFIGURATION FILE FOR VECTOR FIELD FORCE (#VFF) LOCAL PLANNER
-  
-  # Maxspeed of robot (must not exceed [0.0 - 1.0]):
-  vff_maxspeed: 0.8
-  
-  # Force constant:
-  vff_fconst: 3
-  
-  # Replusive constant:
-  vff_frepconst: 3
-  
-
-  # Which values in costmap should be considered? (Def = 254 = only lethal cells)
-  vff_costmap_threshold: 254
-  
-  # Turn debug printout of map on/off:
-  vff_print_debugmap: OFF
-  
-  # Turn debug printout of robot state on/off:
-  vff_print_debugstate: ON
-  
-  # Radius of the created potential field (in cm):
-  vff_potentialfield_radius: 25
-  
-  # Radius of dangerous zone (in cm; 0 = turn off):
-  vff_danger_radius: 8
-  
-  # Factor for danger corrective:
-  vff_danger_factor: 10
-  
-  # In which radius the next goal is targeted from the path:
-  vff_goalradius: 4
-  
-  # At what distance is a goal considered to be reached?
-  vff_distance2goal: 0.25
-  
-  # At what difference of orientation is a goal considered to be reached?
-  vff_orientation2goal: 0.25
-  
-  # PID controller tuning:
-  vff_pid_kp: 0.5
-  vff_pid_ki: 0 
-  vff_pid_kd: 0
+#VFF:
+#  # CONFIGURATION FILE FOR VECTOR FIELD FORCE (#VFF) LOCAL PLANNER
+#  
+#  # Maxspeed of robot (must not exceed [0.0 - 1.0]):
+#  vff_maxspeed: 0.8
+#  
+#  # Force constant:
+#  vff_fconst: 3
+#  
+#  # Replusive constant:
+#  vff_frepconst: 3
+#  
+#
+#  # Which values in costmap should be considered? (Def = 254 = only lethal cells)
+#  vff_costmap_threshold: 254
+#  
+#  # Turn debug printout of map on/off:
+#  vff_print_debugmap: OFF
+#  
+#  # Turn debug printout of robot state on/off:
+#  vff_print_debugstate: ON
+#  
+#  # Radius of the created potential field (in cm):
+#  vff_potentialfield_radius: 25
+#  
+#  # Radius of dangerous zone (in cm; 0 = turn off):
+#  vff_danger_radius: 8
+#  
+#  # Factor for danger corrective:
+#  vff_danger_factor: 10
+#  
+#  # In which radius the next goal is targeted from the path:
+#  vff_goalradius: 4
+#  
+#  # At what distance is a goal considered to be reached?
+#  vff_distance2goal: 0.25
+#  
+#  # At what difference of orientation is a goal considered to be reached?
+#  vff_orientation2goal: 0.25
+#  
+#  # PID controller tuning:
+#  vff_pid_kp: 0.5
+#  vff_pid_ki: 0 
+#  vff_pid_kd: 0
   

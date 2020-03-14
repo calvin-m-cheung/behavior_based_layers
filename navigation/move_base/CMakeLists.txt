@@ -20,8 +20,7 @@ find_package(catkin REQUIRED
         rospy
         rotate_recovery
         std_srvs
-        tf2_geometry_msgs
-        tf2_ros
+        tf
 )
 find_package(Eigen3 REQUIRED)
 add_definitions(${EIGEN3_DEFINITIONS})
