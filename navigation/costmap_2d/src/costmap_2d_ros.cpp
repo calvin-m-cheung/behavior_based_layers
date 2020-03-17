@@ -530,6 +530,7 @@ bool Costmap2DROS::getRobotPose(tf::Stamped<tf::Pose>& global_pose) const
   try
   {
     tf_.transformPose(global_frame_, robot_pose, global_pose);
+
   }
   catch (tf::LookupException& ex)
   {

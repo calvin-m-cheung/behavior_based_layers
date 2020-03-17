@@ -28,7 +28,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCL
   <arg name="no_static_map" default="false"/>
 
   <arg name="base_global_planner" default="navfn/NavfnROS"/>
-  <arg name="base_local_planner" default="vfh_local_planner/VFHPlannerRos"/>
+  <arg name="base_local_planner" default="vfh_local_planner/VFHPlannerRos"/> 
+
 
 
   <arg name="robot_namespace" default="/"/>

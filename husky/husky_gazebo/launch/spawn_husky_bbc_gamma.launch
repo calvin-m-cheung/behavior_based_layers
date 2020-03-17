@@ -57,7 +57,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
       </include>
 
       <!-- For multimaster bringup, need to load the controller config -->
-      <rosparam command="load" file="$(find husky_control)/config/control.yaml" />
+      <rosparam command="load" file="$(find husky_control)/config/control_gamma.yaml" />
 
       <!-- Spawn controllers -->
       <node name="base_controller_spawner" pkg="controller_manager" type="spawner"
